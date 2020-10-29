@@ -8,10 +8,12 @@ import com.fyber.inneractive.sdk.external.InneractiveAdRequest;
 import com.fyber.inneractive.sdk.external.InneractiveAdSpot;
 import com.fyber.inneractive.sdk.external.InneractiveAdSpotManager;
 import com.fyber.inneractive.sdk.external.InneractiveErrorCode;
+import com.fyber.inneractive.sdk.external.InneractiveFullScreenAdRewardedListener;
 import com.fyber.inneractive.sdk.external.InneractiveFullscreenAdEventsListenerAdapter;
 import com.fyber.inneractive.sdk.external.InneractiveFullscreenUnitController;
 import com.fyber.inneractive.sdk.external.InneractiveFullscreenVideoContentController;
 import com.fyber.inneractive.sdk.external.InneractiveMediationName;
+import com.fyber.inneractive.sdk.external.InneractiveUserConfig;
 import com.fyber.inneractive.sdk.external.VideoContentListenerAdapter;
 import com.google.android.gms.ads.mediation.MediationAdLoadCallback;
 import com.google.android.gms.ads.mediation.MediationRewardedAd;
@@ -50,7 +52,7 @@ public class FyberRewardedVideoRenderer implements MediationRewardedAd {
    * Constructor.
    *
    * @param adConfiguration AdMob interstitial ad configuration.
-   * @param adLoadCallback AdMob load callback.
+   * @param adLoadCallback  AdMob load callback.
    */
   FyberRewardedVideoRenderer(MediationRewardedAdConfiguration adConfiguration,
       MediationAdLoadCallback<MediationRewardedAd, MediationRewardedAdCallback> adLoadCallback) {
@@ -80,6 +82,9 @@ public class FyberRewardedVideoRenderer implements MediationRewardedAd {
     mRewardedSpot.setRequestListener(requestListener);
 
     InneractiveAdRequest request = new InneractiveAdRequest(spotId);
+    final InneractiveUserConfig inneractiveUserConfig = FyberAdapterUtils
+        .generateUserConfig(mAdConfiguration.getMediationExtras());
+    request.setUserParams(inneractiveUserConfig);
     mRewardedSpot.requestAd(request);
   }
 
@@ -157,16 +162,22 @@ public class FyberRewardedVideoRenderer implements MediationRewardedAd {
        */
       @Override
       public void onCompleted() {
-        mRewardedAdCallback.onVideoComplete();
-
         // The video is completed. an end card is shown.
-        // The ad is not dismissed yet, but a reward is in order.
+        mRewardedAdCallback.onVideoComplete();
+      }
+    });
+
+    controller.setEventsListener(adListener);
+
+    // Official rewarded interface for both Video and display ads (Since Marketplace 7.6.0)
+    controller.setRewardedListener(new InneractiveFullScreenAdRewardedListener() {
+      @Override
+      public void onAdRewarded(InneractiveAdSpot inneractiveAdSpot) {
         mRewardedAdCallback.onUserEarnedReward(RewardItem.DEFAULT_REWARD);
       }
     });
 
     controller.addContentController(videoContentController);
-    controller.setEventsListener(adListener);
   }
 
   @Override
@@ -174,8 +185,8 @@ public class FyberRewardedVideoRenderer implements MediationRewardedAd {
     if (mRewardedSpot != null && mUnitController != null && mRewardedSpot.isReady()) {
       mUnitController.show(context);
     } else if (mRewardedAdCallback != null) {
-      mRewardedAdCallback.onAdFailedToShow("showAd called, " +
-          "but Fyber's rewarded spot is not ready.");
+      mRewardedAdCallback
+          .onAdFailedToShow("showAd called, but Fyber's rewarded spot is not ready.");
     }
   }
 

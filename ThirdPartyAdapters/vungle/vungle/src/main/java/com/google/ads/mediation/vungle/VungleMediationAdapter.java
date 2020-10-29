@@ -1,6 +1,5 @@
 package com.google.ads.mediation.vungle;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,7 +29,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-/** Mediation network adapter for Vungle. */
+/**
+ * Mediation network adapter for Vungle.
+ */
 public class VungleMediationAdapter extends Adapter
     implements MediationRewardedAd, LoadAdCallback, PlayAdCallback {
 
@@ -99,12 +100,6 @@ public class VungleMediationAdapter extends Adapter
       return;
     }
 
-    if (!(context instanceof Activity)) {
-      initializationCompleteCallback.onInitializationFailed(
-          "Vungle SDK requires an Activity context to initialize.");
-      return;
-    }
-
     HashSet<String> appIDs = new HashSet<>();
     for (MediationConfiguration configuration : mediationConfigurations) {
       Bundle serverParameters = configuration.getServerParameters();
@@ -156,12 +151,6 @@ public class VungleMediationAdapter extends Adapter
           mediationAdLoadCallback) {
     mMediationAdLoadCallback = mediationAdLoadCallback;
 
-    Context context = mediationRewardedAdConfiguration.getContext();
-    if (!(context instanceof Activity)) {
-      mediationAdLoadCallback.onFailure("Vungle SDK requires an Activity context to initialize.");
-      return;
-    }
-
     Bundle mediationExtras = mediationRewardedAdConfiguration.getMediationExtras();
     Bundle serverParameters = mediationRewardedAdConfiguration.getServerParameters();
 
@@ -198,7 +187,7 @@ public class VungleMediationAdapter extends Adapter
     VungleInitializer.getInstance()
         .initialize(
             appID,
-            context.getApplicationContext(),
+            mediationRewardedAdConfiguration.getContext(),
             new VungleInitializationListener() {
               @Override
               public void onInitializeSuccess() {
@@ -235,7 +224,9 @@ public class VungleMediationAdapter extends Adapter
     }
   }
 
-  /** {@link LoadAdCallback} implemenatation from Vungle */
+  /**
+   * {@link LoadAdCallback} implemenatation from Vungle
+   */
   @Override
   public void onAdLoad(final String placementID) {
     mHandler.post(
@@ -251,7 +242,9 @@ public class VungleMediationAdapter extends Adapter
         });
   }
 
-  /** {@link PlayAdCallback} implemenatation from Vungle */
+  /**
+   * {@link PlayAdCallback} implemenatation from Vungle
+   */
   @Override
   public void onAdStart(final String placementID) {
     mHandler.post(
@@ -272,7 +265,8 @@ public class VungleMediationAdapter extends Adapter
   public void onAdEnd(
       final String placementID,
       final boolean wasSuccessfulView,
-      final boolean wasCallToActionClicked) {}
+      final boolean wasCallToActionClicked) {
+  }
 
   @Override
   public void onAdEnd(final String placementID) {
